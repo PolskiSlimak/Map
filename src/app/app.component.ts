@@ -21,32 +21,21 @@ import VectorSource from 'ol/source/Vector';
 
 export class AppComponent {
   map: any;
-  cords : Object[] = [];
   constructor (private service: CitiesService) {
   }
 
   ngOnInit() {
     this.makeMap();
     this.service.getCapitals().subscribe((response: any) =>{
+      let cords: Feature[] = [];
       response[1].forEach((element: any) => {
         if (element.longitude != '' && element.latitude != '') {
-          let feature = this.makeLayer(element.longitude, element.latitude);
-          this.cords.push(feature);
+          let feature = this.makePoints(element.longitude, element.latitude);
+          cords.push(feature);
         }
       });
-      this.cords.forEach((element: any) => {
-        const vectorSource = new VectorSource({
-          features: [element]
-        });
-        const vectorLayer = new VectorLayer({
-          source: vectorSource
-        });
-        /*const tileLayer = new TileLayer({
-          source: new OSM()
-        })*/
-        this.map.addLayer(vectorLayer);
-      });
-      console.log(this.cords);
+      let layer = this.makeLayer(cords);
+      this.map.addLayer(layer);
     });
   }
 
@@ -65,7 +54,7 @@ export class AppComponent {
     });
   }
 
-  public makeLayer(longitude: number, latitude: number) {
+  public makePoints(longitude: number, latitude: number) {
     const point = new Point(fromLonLat([longitude, latitude]));
     const feature = new Feature({
       geometry: point
@@ -78,5 +67,14 @@ export class AppComponent {
       })
     }));
     return feature;
+  }
+
+  public makeLayer(cords) {
+    const vectorSource = new VectorSource({
+      features: cords
+    });
+    return new VectorLayer({
+      source: vectorSource
+    });
   }
 }

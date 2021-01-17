@@ -69,7 +69,7 @@ export class AppComponent {
     return feature;
   }
 
-  public makeLayer(cords) {
+  public makeLayer(cords: any) {
     const vectorSource = new VectorSource({
       features: cords
     });

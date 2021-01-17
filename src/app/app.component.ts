@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { CitiesService } from './cities.service';
 import 'ol/ol.css';
 import Map from 'ol/Map';
 import OSM from 'ol/source/OSM';
@@ -20,9 +21,33 @@ import VectorSource from 'ol/source/Vector';
 
 export class AppComponent {
   map: any;
+  cords : Object[] = [];
+  constructor (private service: CitiesService) {
+  }
 
   ngOnInit() {
     this.makeMap();
+    this.service.getCapitals().subscribe((response: any) =>{
+      response[1].forEach((element: any) => {
+        if (element.longitude != '' && element.latitude != '') {
+          let feature = this.makeLayer(element.longitude, element.latitude);
+          this.cords.push(feature);
+        }
+      });
+      this.cords.forEach((element: any) => {
+        const vectorSource = new VectorSource({
+          features: [element]
+        });
+        const vectorLayer = new VectorLayer({
+          source: vectorSource
+        });
+        /*const tileLayer = new TileLayer({
+          source: new OSM()
+        })*/
+        this.map.addLayer(vectorLayer);
+      });
+      console.log(this.cords);
+    });
   }
 
   public makeMap() {
@@ -34,9 +59,24 @@ export class AppComponent {
         })
       ],
       view: new View({
-        center: [37.41, 8.82],
-        zoom: 3
+        center:  fromLonLat([-70.016, 12.516]),
+        zoom: 5
       })
     });
+  }
+
+  public makeLayer(longitude: number, latitude: number) {
+    const point = new Point(fromLonLat([longitude, latitude]));
+    const feature = new Feature({
+      geometry: point
+    });
+    feature.setStyle(new Style({
+      image: new Icon({
+        color: "black",
+        src: "assets/dot.png",
+        imgSize: [10, 10]
+      })
+    }));
+    return feature;
   }
 }
